@@ -1,7 +1,7 @@
 /**
- * This library modifies the diff-patch-match library by removing the patch
- * and match functionality and certain advanced options in the diff function.
- * The original license is as follows:
+ * This library modifies the diff-patch-match library by Neil Fraser
+ * by removing the patch and match functionality and certain advanced
+ * options in the diff function. The original license is as follows:
  *
  * ===
  *
@@ -23,30 +23,6 @@
  * limitations under the License.
  */
 
-/**
- * @fileoverview Computes the difference between two texts to create a patch.
- * Applies the patch onto another text, allowing for errors.
- * @author fraser@google.com (Neil Fraser)
- */
-
-/**
- * Class containing the diff, match and patch methods.
- * @constructor
- */
-function diff_match_patch() {
-
-  // Defaults.
-  // Redefine these in your program to override the defaults.
-
-  // Number of seconds to map a diff before giving up (0 for infinity).
-  this.Diff_Timeout = 1.0;
-  // Cost of an empty edit operation in terms of edit characters.
-  this.Diff_EditCost = 4;
-}
-
-
-//  DIFF FUNCTIONS
-
 
 /**
  * The data structure representing a diff is an array of tuples:
@@ -57,18 +33,15 @@ var DIFF_DELETE = -1;
 var DIFF_INSERT = 1;
 var DIFF_EQUAL = 0;
 
-/** @typedef {{0: number, 1: string}} */
-diff_match_patch.Diff;
-
 
 /**
  * Find the differences between two texts.  Simplifies the problem by stripping
  * any common prefix or suffix off the texts before diffing.
  * @param {string} text1 Old string to be diffed.
  * @param {string} text2 New string to be diffed.
- * @return {!Array.<!diff_match_patch.Diff>} Array of diff tuples.
+ * @return {Array} Array of diff tuples.
  */
-diff_match_patch.prototype.diff_main = function(text1, text2) {
+function diff_main(text1, text2) {
   // Check for equality (speedup).
   if (text1 == text2) {
     if (text1) {
@@ -78,19 +51,19 @@ diff_match_patch.prototype.diff_main = function(text1, text2) {
   }
 
   // Trim off common prefix (speedup).
-  var commonlength = this.diff_commonPrefix(text1, text2);
+  var commonlength = diff_commonPrefix(text1, text2);
   var commonprefix = text1.substring(0, commonlength);
   text1 = text1.substring(commonlength);
   text2 = text2.substring(commonlength);
 
   // Trim off common suffix (speedup).
-  commonlength = this.diff_commonSuffix(text1, text2);
+  commonlength = diff_commonSuffix(text1, text2);
   var commonsuffix = text1.substring(text1.length - commonlength);
   text1 = text1.substring(0, text1.length - commonlength);
   text2 = text2.substring(0, text2.length - commonlength);
 
   // Compute the diff on the middle block.
-  var diffs = this.diff_compute_(text1, text2);
+  var diffs = diff_compute_(text1, text2);
 
   // Restore the prefix and suffix.
   if (commonprefix) {
@@ -99,7 +72,7 @@ diff_match_patch.prototype.diff_main = function(text1, text2) {
   if (commonsuffix) {
     diffs.push([DIFF_EQUAL, commonsuffix]);
   }
-  this.diff_cleanupMerge(diffs);
+  diff_cleanupMerge(diffs);
   return diffs;
 };
 
@@ -109,10 +82,9 @@ diff_match_patch.prototype.diff_main = function(text1, text2) {
  * have any common prefix or suffix.
  * @param {string} text1 Old string to be diffed.
  * @param {string} text2 New string to be diffed.
- * @return {!Array.<!diff_match_patch.Diff>} Array of diff tuples.
- * @private
+ * @return {Array} Array of diff tuples.
  */
-diff_match_patch.prototype.diff_compute_ = function(text1, text2) {
+function diff_compute_(text1, text2) {
   var diffs;
 
   if (!text1) {
@@ -147,7 +119,7 @@ diff_match_patch.prototype.diff_compute_ = function(text1, text2) {
   }
 
   // Check to see if the problem can be split in two.
-  var hm = this.diff_halfMatch_(text1, text2);
+  var hm = diff_halfMatch_(text1, text2);
   if (hm) {
     // A half-match was found, sort out the return data.
     var text1_a = hm[0];
@@ -156,13 +128,13 @@ diff_match_patch.prototype.diff_compute_ = function(text1, text2) {
     var text2_b = hm[3];
     var mid_common = hm[4];
     // Send both pairs off for separate processing.
-    var diffs_a = this.diff_main(text1_a, text2_a);
-    var diffs_b = this.diff_main(text1_b, text2_b);
+    var diffs_a = diff_main(text1_a, text2_a);
+    var diffs_b = diff_main(text1_b, text2_b);
     // Merge the results.
     return diffs_a.concat([[DIFF_EQUAL, mid_common]], diffs_b);
   }
 
-  return this.diff_bisect_(text1, text2);
+  return diff_bisect_(text1, text2);
 };
 
 
@@ -172,10 +144,10 @@ diff_match_patch.prototype.diff_compute_ = function(text1, text2) {
  * See Myers 1986 paper: An O(ND) Difference Algorithm and Its Variations.
  * @param {string} text1 Old string to be diffed.
  * @param {string} text2 New string to be diffed.
- * @return {!Array.<!diff_match_patch.Diff>} Array of diff tuples.
+ * @return {Array} Array of diff tuples.
  * @private
  */
-diff_match_patch.prototype.diff_bisect_ = function(text1, text2) {
+function diff_bisect_(text1, text2) {
   // Cache the text lengths to prevent multiple calls.
   var text1_length = text1.length;
   var text2_length = text2.length;
@@ -232,7 +204,7 @@ diff_match_patch.prototype.diff_bisect_ = function(text1, text2) {
           var x2 = text1_length - v2[k2_offset];
           if (x1 >= x2) {
             // Overlap detected.
-            return this.diff_bisectSplit_(text1, text2, x1, y1);
+            return diff_bisectSplit_(text1, text2, x1, y1);
           }
         }
       }
@@ -270,7 +242,7 @@ diff_match_patch.prototype.diff_bisect_ = function(text1, text2) {
           x2 = text1_length - x2;
           if (x1 >= x2) {
             // Overlap detected.
-            return this.diff_bisectSplit_(text1, text2, x1, y1);
+            return diff_bisectSplit_(text1, text2, x1, y1);
           }
         }
       }
@@ -289,18 +261,17 @@ diff_match_patch.prototype.diff_bisect_ = function(text1, text2) {
  * @param {string} text2 New string to be diffed.
  * @param {number} x Index of split point in text1.
  * @param {number} y Index of split point in text2.
- * @return {!Array.<!diff_match_patch.Diff>} Array of diff tuples.
- * @private
+ * @return {Array} Array of diff tuples.
  */
-diff_match_patch.prototype.diff_bisectSplit_ = function(text1, text2, x, y) {
+function diff_bisectSplit_(text1, text2, x, y) {
   var text1a = text1.substring(0, x);
   var text2a = text2.substring(0, y);
   var text1b = text1.substring(x);
   var text2b = text2.substring(y);
 
   // Compute both diffs serially.
-  var diffs = this.diff_main(text1a, text2a);
-  var diffsb = this.diff_main(text1b, text2b);
+  var diffs = diff_main(text1a, text2a);
+  var diffsb = diff_main(text1b, text2b);
 
   return diffs.concat(diffsb);
 };
@@ -313,7 +284,7 @@ diff_match_patch.prototype.diff_bisectSplit_ = function(text1, text2, x, y) {
  * @return {number} The number of characters common to the start of each
  *     string.
  */
-diff_match_patch.prototype.diff_commonPrefix = function(text1, text2) {
+function diff_commonPrefix(text1, text2) {
   // Quick check for common null cases.
   if (!text1 || !text2 || text1.charAt(0) != text2.charAt(0)) {
     return 0;
@@ -344,7 +315,7 @@ diff_match_patch.prototype.diff_commonPrefix = function(text1, text2) {
  * @param {string} text2 Second string.
  * @return {number} The number of characters common to the end of each string.
  */
-diff_match_patch.prototype.diff_commonSuffix = function(text1, text2) {
+function diff_commonSuffix(text1, text2) {
   // Quick check for common null cases.
   if (!text1 || !text2 ||
       text1.charAt(text1.length - 1) != text2.charAt(text2.length - 1)) {
@@ -379,15 +350,13 @@ diff_match_patch.prototype.diff_commonSuffix = function(text1, text2) {
  * @return {Array.<string>} Five element Array, containing the prefix of
  *     text1, the suffix of text1, the prefix of text2, the suffix of
  *     text2 and the common middle.  Or null if there was no match.
- * @private
  */
-diff_match_patch.prototype.diff_halfMatch_ = function(text1, text2) {
+function diff_halfMatch_(text1, text2) {
   var longtext = text1.length > text2.length ? text1 : text2;
   var shorttext = text1.length > text2.length ? text2 : text1;
   if (longtext.length < 4 || shorttext.length * 2 < longtext.length) {
     return null;  // Pointless.
   }
-  var dmp = this;  // 'this' becomes 'window' in a closure.
 
   /**
    * Does a substring of shorttext exist within longtext such that the substring
@@ -408,10 +377,10 @@ diff_match_patch.prototype.diff_halfMatch_ = function(text1, text2) {
     var best_common = '';
     var best_longtext_a, best_longtext_b, best_shorttext_a, best_shorttext_b;
     while ((j = shorttext.indexOf(seed, j + 1)) != -1) {
-      var prefixLength = dmp.diff_commonPrefix(longtext.substring(i),
-                                               shorttext.substring(j));
-      var suffixLength = dmp.diff_commonSuffix(longtext.substring(0, i),
-                                               shorttext.substring(0, j));
+      var prefixLength = diff_commonPrefix(longtext.substring(i),
+                                           shorttext.substring(j));
+      var suffixLength = diff_commonSuffix(longtext.substring(0, i),
+                                           shorttext.substring(0, j));
       if (best_common.length < suffixLength + prefixLength) {
         best_common = shorttext.substring(j - suffixLength, j) +
             shorttext.substring(j, j + prefixLength);
@@ -464,21 +433,13 @@ diff_match_patch.prototype.diff_halfMatch_ = function(text1, text2) {
   return [text1_a, text1_b, text2_a, text2_b, mid_common];
 };
 
-// Define some regex patterns for matching boundaries.
-diff_match_patch.nonAlphaNumericRegex_ = /[^a-zA-Z0-9]/;
-diff_match_patch.whitespaceRegex_ = /\s/;
-diff_match_patch.linebreakRegex_ = /[\r\n]/;
-diff_match_patch.blanklineEndRegex_ = /\n\r?\n$/;
-diff_match_patch.blanklineStartRegex_ = /^\r?\n\r?\n/;
-
-
 
 /**
  * Reorder and merge like edit sections.  Merge equalities.
  * Any edit section can move as long as it doesn't cross an equality.
- * @param {!Array.<!diff_match_patch.Diff>} diffs Array of diff tuples.
+ * @param {Array} diffs Array of diff tuples.
  */
-diff_match_patch.prototype.diff_cleanupMerge = function(diffs) {
+function diff_cleanupMerge(diffs) {
   diffs.push([DIFF_EQUAL, '']);  // Add a dummy entry at the end.
   var pointer = 0;
   var count_delete = 0;
@@ -503,7 +464,7 @@ diff_match_patch.prototype.diff_cleanupMerge = function(diffs) {
         if (count_delete + count_insert > 1) {
           if (count_delete !== 0 && count_insert !== 0) {
             // Factor out any common prefixies.
-            commonlength = this.diff_commonPrefix(text_insert, text_delete);
+            commonlength = diff_commonPrefix(text_insert, text_delete);
             if (commonlength !== 0) {
               if ((pointer - count_delete - count_insert) > 0 &&
                   diffs[pointer - count_delete - count_insert - 1][0] ==
@@ -519,7 +480,7 @@ diff_match_patch.prototype.diff_cleanupMerge = function(diffs) {
               text_delete = text_delete.substring(commonlength);
             }
             // Factor out any common suffixies.
-            commonlength = this.diff_commonSuffix(text_insert, text_delete);
+            commonlength = diff_commonSuffix(text_insert, text_delete);
             if (commonlength !== 0) {
               diffs[pointer][1] = text_insert.substring(text_insert.length -
                   commonlength) + diffs[pointer][1];
@@ -595,17 +556,15 @@ diff_match_patch.prototype.diff_cleanupMerge = function(diffs) {
   }
   // If shifts were made, the diff needs reordering and another shift sweep.
   if (changes) {
-    this.diff_cleanupMerge(diffs);
+    diff_cleanupMerge(diffs);
   }
 };
 
-// Export these global variables so that they survive Google's JS compiler.
-// In a browser, 'this' will be 'window'.
-// Users of node.js should 'require' the uncompressed version since Google's
-// JS compiler may break the following exports for non-browser environments.
-this['diff_match_patch'] = diff_match_patch;
-this['DIFF_DELETE'] = DIFF_DELETE;
-this['DIFF_INSERT'] = DIFF_INSERT;
-this['DIFF_EQUAL'] = DIFF_EQUAL;
 
-module.exports = diff_match_patch;
+var diff = diff_main;
+diff.INSERT = DIFF_INSERT;
+diff.DELETE = DIFF_DELETE;
+diff.EQUAL = DIFF_EQUAL;
+
+
+module.exports = diff;

@@ -4,7 +4,6 @@ var seedrandom = require('seedrandom');
 var diff = require('./diff.js');
 
 googlediff = new googlediff();
-diff = new diff();
 
 var ITERATIONS = 10000;
 var ALPHABET = 'GATTACA';
@@ -28,9 +27,8 @@ for(var i = 0; i <= ITERATIONS; ++i) {
 
 console.log('Running tests...');
 for(var i = 0; i < ITERATIONS; ++i) {
-  var result = diff.diff_main(strings[i], strings[i+1]);
+  var result = diff(strings[i], strings[i+1]);
   var expected = googlediff.diff_main(strings[i], strings[i+1]);
-
   if (!_.isEqual(result, expected)) {
     console.log('Expected', expected);
     console.log('Result', result);
