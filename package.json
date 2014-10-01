@@ -1,0 +1,15 @@
+{
+  "name": "fast-diff",
+  "version": "0.0.0",
+  "description": "Fast Javascript text diff",
+  "main": "diff.js",
+  "devDependencies": {
+    "googlediff": "~0.1.0",
+    "lodash": "~2.4.1",
+    "seedrandom": "~2.3.10"
+  },
+  "scripts": {
+    "test": "node test.js"
+  },
+  "license": "Apache 2.0"
+}
