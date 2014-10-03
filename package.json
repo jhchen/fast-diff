@@ -1,6 +1,6 @@
 {
   "name": "fast-diff",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Fast Javascript text diff",
   "main": "diff.js",
   "devDependencies": {
