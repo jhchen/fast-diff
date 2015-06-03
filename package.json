@@ -5,8 +5,8 @@
   "main": "diff.js",
   "devDependencies": {
     "googlediff": "~0.1.0",
-    "lodash": "~2.4.1",
-    "seedrandom": "~2.3.10"
+    "lodash": "~3.9.3",
+    "seedrandom": "~2.4.0"
   },
   "scripts": {
     "test": "node test.js"
