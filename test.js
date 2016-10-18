@@ -25,13 +25,26 @@ for(var i = 0; i <= ITERATIONS; ++i) {
   strings.push(chars.join(''));
 }
 
-console.log('Running tests...');
+console.log('Running tests *without* cursor information...');
 for(var i = 0; i < ITERATIONS; ++i) {
   var result = diff(strings[i], strings[i+1]);
   var expected = googlediff.diff_main(strings[i], strings[i+1]);
   if (!_.isEqual(result, expected)) {
     console.log('Expected', expected);
     console.log('Result', result);
+    throw new Error('Diff produced difference results.');
+  }
+}
+
+console.log('Running tests *with* cursor information');
+for(var i = 0; i < ITERATIONS; ++i) {
+  var cursor_pos = Math.floor(random() * strings[i].length);
+  var diffs = diff(strings[i], strings[i+1], cursor_pos);
+  var patch = googlediff.patch_make(strings[i], strings[i+1], diffs);
+  var expected = googlediff.patch_apply(patch, strings[i])[0];
+  if (expected !== strings[i+1]) {
+    console.log('Expected', expected);
+    console.log('Result', strings[i+1]);
     throw new Error('Diff produced difference results.');
   }
 }
