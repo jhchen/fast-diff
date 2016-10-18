@@ -19,6 +19,6 @@
   "scripts": {
     "test": "node test.js"
   },
-  "license": "Apache 2.0",
+  "license": "Apache-2.0",
   "keywords": ["diff"]
 }
