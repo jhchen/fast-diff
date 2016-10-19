@@ -13,7 +13,7 @@ var bad = 'Bad dog';
 var result = diff(good, bad);
 // [[-1, "Goo"], [1, "Ba"], [0, "d dog"]]
 
-// Respect suggested edit location (cursor position)
+// Respect suggested edit location (cursor position), added in v1.1
 diff('aaa', 'aaaa', 1)
 // [[0, "a"], [1, "a"], [0, "aa"]]
 
