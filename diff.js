@@ -575,9 +575,9 @@ module.exports = diff;
 /*
  * Modify a diff such that the cursor position points to the start of a change:
  * E.g.
- *   cursor_normalize_diff([[DIFF_EQUAL, 'abc']], cursorPos)
+ *   cursor_normalize_diff([[DIFF_EQUAL, 'abc']], 1)
  *     => [1, [[DIFF_EQUAL, 'a'], [DIFF_EQUAL, 'bc']]]
- *   cursor_normalize_diff([[DIFF_INSERT, 'new'], [DIFF_DELETE, 'xyz']], 1)
+ *   cursor_normalize_diff([[DIFF_INSERT, 'new'], [DIFF_DELETE, 'xyz']], 2)
  *     => [2, [[DIFF_INSERT, 'new'], [DIFF_DELETE, 'xy'], [DIFF_DELETE, 'z']]]
  *
  * @param {Array} diffs Array of diff tuples
