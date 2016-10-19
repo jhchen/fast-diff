@@ -51,6 +51,11 @@ function diff_main(text1, text2, cursor_pos) {
     return [];
   }
 
+  // Check cursor_pos within bounds
+  if (cursor_pos < 0 || text1.length < cursor_pos) {
+    cursor_pos = null;
+  }
+
   // Trim off common prefix (speedup).
   var commonlength = diff_commonPrefix(text1, text2);
   var commonprefix = text1.substring(0, commonlength);
