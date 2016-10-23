@@ -641,7 +641,11 @@ function fix_cursor (diffs, cursor_pos) {
   var d = ndiffs[cursor_pointer];
   var d_next = ndiffs[cursor_pointer + 1];
 
-  if (d[0] !== DIFF_EQUAL) {
+  if (d == null) {
+    // Text was deleted from end of original string,
+    // cursor is now out of bounds in new string
+    return diffs;
+  } else if (d[0] !== DIFF_EQUAL) {
     // A modification happened at the cursor location.
     // This is the expected outcome, so we can return the original diff.
     return diffs;
