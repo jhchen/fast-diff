@@ -1,6 +1,6 @@
 {
   "name": "fast-diff",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Fast Javascript text diff",
   "author": "Jason Chen <jhchen7@gmail.com>",
   "main": "diff.js",
