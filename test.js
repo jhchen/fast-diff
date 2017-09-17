@@ -49,4 +49,43 @@ for(var i = 0; i < ITERATIONS; ++i) {
   }
 }
 
+console.log('Running emoji tests');
+(function() {
+  var result = diff('🐶', '🐯');
+  var expected = [
+    [diff.DELETE, '🐶'],
+    [diff.INSERT, '🐯'],
+  ];
+  if (!_.isEqual(result, expected)) {
+    console.log(result, '!==', expected);
+    throw new Error('Emoji simple case test failed');
+  }
+})();
+
+(function() {
+  var result = diff('👨🏽', '👩🏽');
+  var expected = [
+    [diff.DELETE, '👨'],
+    [diff.INSERT, '👩'],
+    [diff.EQUAL, '🏽']
+  ];
+  if (!_.isEqual(result, expected)) {
+    console.log(result, '!==', expected);
+    throw new Error('Emoji before case test failed');
+  }
+})();
+
+(function() {
+  var result = diff('👩🏼', '👩🏽');
+  var expected = [
+    [diff.EQUAL, '👩'],
+    [diff.DELETE, '🏼'],
+    [diff.INSERT, '🏽'],
+  ];
+  if (!_.isEqual(result, expected)) {
+    console.log(result, '!==', expected);
+    throw new Error('Emoji after case test failed');
+  }
+})();
+
 console.log("Success!");
