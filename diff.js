@@ -495,14 +495,21 @@ function diff_cleanupMerge(diffs, fix_unicode) {
         if (fix_unicode) {
           // prevent splitting of unicode surrogate pairs.  when fix_unicode is true,
           // we assume that the old and new text in the diff are complete and correct
-          // unicode encodings
+          // unicode-encoded JS strings, but the tuple boundaries may fall between
+          // surrogate pairs.  we fix this by shaving off stray surrogates from the end
+          // of the previous equality and the beginning of this equality.  this may create
+          // empty equalities or a common prefix or suffix.  for example, if AB and AC are
+          // emojis, `[[0, 'A'], [-1, 'BA'], [0, 'C']]` would turn into deleting 'ABAC' and
+          // inserting 'AC', and then the common suffix 'AC' will be eliminated.  in this
+          // particular case, both equalities go away, we absorb any previous inequalities,
+          // and we keep scanning for the next equality before rewriting the tuples.
           if (previous_equality >= 0 && ends_with_pair_start(diffs[previous_equality][1])) {
             var stray = diffs[previous_equality][1].slice(-1);
             diffs[previous_equality][1] = diffs[previous_equality][1].slice(0, -1);
             text_delete = stray + text_delete;
             text_insert = stray + text_insert;
             if (!diffs[previous_equality][1]) {
-              // we emptied out an equality, so delete it and include previous delete/insert
+              // emptied out previous equality, so delete it and include previous delete/insert
               diffs.splice(previous_equality, 1);
               pointer--;
               var k = previous_equality - 1;
@@ -532,6 +539,7 @@ function diff_cleanupMerge(diffs, fix_unicode) {
           break;
         }
         if (text_delete.length > 0 || text_insert.length > 0) {
+          // note that diff_commonPrefix and diff_commonSuffix are unicode-aware
           if (text_delete.length > 0 && text_insert.length > 0) {
             // Factor out any common prefixes.
             commonlength = diff_commonPrefix(text_insert, text_delete);
