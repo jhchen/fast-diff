@@ -1,52 +1,49 @@
 var _ = require('lodash');
-var googlediff = require('googlediff');
 var seedrandom = require('seedrandom');
 var diff = require('./diff.js');
 
-googlediff = new googlediff();
-
-var ITERATIONS = 1000;
+var ITERATIONS = 10000;
 var ALPHABET = 'GATTACA';
 var LENGTH = 100;
 
 var seed = Math.floor(Math.random() * 10000);
 var random = seedrandom(seed);
 
+console.log('Running regression tests...');
+[
+  ['GAATAAAAAAAGATTAACAT', 'AAAAACTTGTAATTAACAAC'],
+  ['🔘🤘🔗🔗', '🔗🤗🤗__🤗🤘🤘🤗🔗🤘🔗'],
+  ['🔗🤗🤗__🤗🤘🤘🤗🔗🤘🔗', '🤗🤘🔘'],
+  ['🤘🤘🔘🔘_🔘🔗🤘🤗🤗__🔗🤘', '🤘🔘🤘🔗🤘🤘🔗🤗🤘🔘🔘'],
+].forEach(function (data) {
+  var result = diff(data[0], data[1]);
+  applyDiff(result, data[0], data[1]);
+});
+
 console.log('Running computing ' + ITERATIONS + ' diffs with seed ' + seed + '...');
 
 console.log('Generating strings...');
 var strings = [];
-for(var i = 0; i <= ITERATIONS; ++i) {
+for (var i = 0; i <= ITERATIONS; ++i) {
   var chars = [];
-  for(var l = 0; l < LENGTH; ++l) {
+  for (var l = 0; l < LENGTH; ++l) {
     var letter = ALPHABET.substr(Math.floor(random() * ALPHABET.length), 1);
     chars.push(letter);
   }
   strings.push(chars.join(''));
 }
 
-console.log('Running tests *without* cursor information...');
-for(var i = 0; i < ITERATIONS; ++i) {
-  var result = diff(strings[i], strings[i+1]);
-  var expected = googlediff.diff_main(strings[i], strings[i+1]);
-  if (!_.isEqual(result, expected)) {
-    console.log('Expected', expected);
-    console.log('Result', result);
-    throw new Error('Diff produced difference results.');
-  }
+console.log('Running fuzz tests *without* cursor information...');
+for (var i = 0; i < ITERATIONS; ++i) {
+  var result = diff(strings[i], strings[i + 1]);
+  applyDiff(result, strings[i], strings[i + 1]);
 }
 
-console.log('Running tests *with* cursor information');
-for(var i = 0; i < ITERATIONS; ++i) {
+console.log('Running fuzz tests *with* cursor information');
+for (var i = 0; i < ITERATIONS; ++i) {
   var cursor_pos = Math.floor(random() * strings[i].length + 1);
-  var diffs = diff(strings[i], strings[i+1], cursor_pos);
-  var patch = googlediff.patch_make(strings[i], strings[i+1], diffs);
-  var expected = googlediff.patch_apply(patch, strings[i])[0];
-  if (expected !== strings[i+1]) {
-    console.log('Expected', expected);
-    console.log('Result', strings[i+1]);
-    throw new Error('Diff produced difference results.');
-  }
+  var diffs = diff(strings[i], strings[i + 1], cursor_pos);
+  applyDiff(diffs, strings[i], strings[i + 1]);
 }
 
 function parseDiff(str) {
@@ -150,8 +147,8 @@ console.log('Running cursor tests');
   var oldText = data[0];
   var newText = data[2];
   var oldSelection = typeof data[1] === 'number' ?
-  { index: data[1], length: 0 } :
-  { index: data[1][0], length: data[1][1] - data[1][0] };
+    { index: data[1], length: 0 } :
+    { index: data[1][0], length: data[1][1] - data[1][0] };
   var newSelection = typeof data[3] === 'number' ?
     { index: data[3], length: 0 } :
     data[3] === null ? null : { index: data[3][0], length: data[3][1] - data[3][0] };
@@ -212,31 +209,121 @@ function doCursorTest(oldText, newText, selectionInfo, expected) {
 }
 
 console.log('Running emoji tests');
-(function() {
-  var result = diff('🐶', '🐯');
-  var expected = parseDiff('-🐶+🐯');
-  if (!_.isEqual(result, expected)) {
-    console.log(result, '!==', expected);
-    throw new Error('Emoji simple case test failed');
-  }
-})();
+[
+  ['🐶', '🐯', '-🐶+🐯'],
+  ['👨🏽', '👩🏽', '-👨+👩=🏽'],
+  ['👩🏼', '👩🏽', '=👩-🏼+🏽'],
 
-(function() {
-  var result = diff('👨🏽', '👩🏽');
-  var expected = parseDiff('-👨+👩=🏽');
-  if (!_.isEqual(result, expected)) {
-    console.log(result, '!==', expected);
-    throw new Error('Emoji before case test failed');
-  }
-})();
+  ['🍏🍎', '🍎', '-🍏=🍎'],
+  ['🍎', '🍏🍎', '+🍏=🍎'],
 
-(function() {
-  var result = diff('👩🏼', '👩🏽');
-  var expected = parseDiff('=👩-🏼+🏽');
+].forEach(function (data) {
+  var oldText = data[0];
+  var newText = data[1];
+  var expected = parseDiff(data[2]);
+  doEmojiTest(oldText, newText, expected);
+  doEmojiTest('x' + oldText, 'x' + newText, diffPrepend(expected, 'x'));
+  doEmojiTest(oldText + 'x', newText + 'x', diffAppend(expected, 'x'));
+});
+
+function doEmojiTest(oldText, newText, expected) {
+  var result = diff(oldText, newText);
   if (!_.isEqual(result, expected)) {
+    console.log(oldText, newText, expected);
     console.log(result, '!==', expected);
-    throw new Error('Emoji after case test failed');
+    throw new Error('Emoji simple test case failed');
   }
-})();
+}
+
+// emojis chosen to share high and low surrogates!
+var EMOJI_ALPHABET = ['_', '🤗', '🔗', '🤘', '🔘'];
+
+console.log('Generating emoji strings...');
+var emoji_strings = [];
+for (var i = 0; i <= ITERATIONS; ++i) {
+  var letters = [];
+  var len = Math.floor(random() * 50);
+  for (var l = 0; l < len; ++l) {
+    var letter = EMOJI_ALPHABET[Math.floor(random() * EMOJI_ALPHABET.length)];
+    letters.push(letter);
+  }
+  emoji_strings.push(letters.join(''));
+}
+
+console.log('Running emoji fuzz tests...');
+for (var i = 0; i < ITERATIONS; ++i) {
+  var oldText = emoji_strings[i];
+  var newText = emoji_strings[i + 1];
+  var result = diff(oldText, newText);
+  applyDiff(result, oldText, newText);
+}
+
+// Applies a diff to text, throwing an error if diff is invalid or incorrect
+function applyDiff(diffs, text, expectedResult) {
+  var pos = 0;
+  function throwError(message) {
+    console.log(diffs, text, expectedResult);
+    throw new Error(message);
+  }
+  function expect(expected) {
+    var found = text.substr(pos, expected.length);
+    if (found !== expected) {
+      throwError('Expected "' + expected + '", found "' + found + '"');
+    }
+  }
+  var result = '';
+  var inserts_since_last_equality = 0;
+  var deletes_since_last_equality = 0;
+  for (var i = 0; i < diffs.length; i++) {
+    var d = diffs[i];
+    if (!d[1]) {
+      throwError('Empty tuple in diff')
+    }
+    var firstCharCode = d[1].charCodeAt(0);
+    var lastCharCode = d[1].slice(-1).charCodeAt(0);
+    if (firstCharCode >= 0xDC00 && firstCharCode <= 0xDFFF ||
+      lastCharCode >= 0xD800 && lastCharCode <= 0xDBFF) {
+        throwError('Bad unicode diff tuple')
+    }
+    switch (d[0]) {
+      case diff.EQUAL:
+        if (i !== 0 && !inserts_since_last_equality && !deletes_since_last_equality) {
+          throwError('two consecutive equalities in diff');
+        }
+        inserts_since_last_equality = 0;
+        deletes_since_last_equality = 0;
+        expect(d[1]);
+        result += d[1];
+        pos += d[1].length;
+        break;
+      case diff.DELETE:
+        if (deletes_since_last_equality) {
+          throwError('multiple deletes between equalities')
+        }
+        if (inserts_since_last_equality) {
+          throwError('delete following insert in diff')
+        }
+        deletes_since_last_equality++;
+        expect(d[1]);
+        pos += d[1].length;
+        break
+      case diff.INSERT:
+        if (inserts_since_last_equality) {
+          throwError('multiple inserts between equalities')
+        }
+        inserts_since_last_equality++;
+        result += d[1];
+        break;
+    }
+  }
+  if (pos !== text.length) {
+    throwError('Diff did not consume entire input text');
+  }
+  if (result !== expectedResult) {
+    console.log(diffs, text, expectedResult, result);
+    throw new Error('Diff not correct')
+  }
+  return result;
+}
 
 console.log("Success!");
