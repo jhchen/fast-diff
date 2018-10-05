@@ -5,6 +5,7 @@ var diff = require('./diff.js');
 var ITERATIONS = 10000;
 var ALPHABET = 'GATTACA';
 var LENGTH = 100;
+var EMOJI_MAX_LENGTH = 50;
 
 var seed = Math.floor(Math.random() * 10000);
 var random = seedrandom(seed);
@@ -15,6 +16,10 @@ console.log('Running regression tests...');
   ['🔘🤘🔗🔗', '🔗🤗🤗__🤗🤘🤘🤗🔗🤘🔗'],
   ['🔗🤗🤗__🤗🤘🤘🤗🔗🤘🔗', '🤗🤘🔘'],
   ['🤘🤘🔘🔘_🔘🔗🤘🤗🤗__🔗🤘', '🤘🔘🤘🔗🤘🤘🔗🤗🤘🔘🔘'],
+  ['🤗🤘🤗🔘🤘🔘🤗_🤗🔗🤘🤗_🤘🔗🤗🤘🔗🤘🤘🤘🔗🤗🔗🔗🔗🤗_🤘🔗🤗🤗🔘🤗🤗🤘🤗',
+   '_🤗🤘_🤘🤘🔘🤗🔘🤘_🔘🤗🔗🔘🔗🤘🔗🤘🤗🔗🔗🔗🤘🔘_🤗🤘🤘🤘__🤘_🔘🤘🤘_🔗🤘🔘'],
+  ['🔗🤘🤗🔘🔘🤗', '🤘🤘🤘🤗🔘🔗🔗'],
+  ['🔘_🔗🔗🔗🤗🔗', '🤘🤗🔗🤗_🤘🔘_'],
 ].forEach(function (data) {
   var result = diff(data[0], data[1]);
   applyDiff(result, data[0], data[1]);
@@ -242,7 +247,7 @@ console.log('Generating emoji strings...');
 var emoji_strings = [];
 for (var i = 0; i <= ITERATIONS; ++i) {
   var letters = [];
-  var len = Math.floor(random() * 50);
+  var len = Math.floor(random() * EMOJI_MAX_LENGTH);
   for (var l = 0; l < len; ++l) {
     var letter = EMOJI_ALPHABET[Math.floor(random() * EMOJI_ALPHABET.length)];
     letters.push(letter);

@@ -516,6 +516,7 @@ function diff_cleanupMerge(diffs, fix_unicode) {
                 text_delete = diffs[k][1] + text_delete;
                 k--;
               }
+              previous_equality = k;
             }
           }
           if (starts_with_pair_end(diffs[pointer][1])) {
@@ -532,7 +533,7 @@ function diff_cleanupMerge(diffs, fix_unicode) {
         }
         if (text_delete.length > 0 || text_insert.length > 0) {
           if (text_delete.length > 0 && text_insert.length > 0) {
-            // Factor out any common prefixies.
+            // Factor out any common prefixes.
             commonlength = diff_commonPrefix(text_insert, text_delete);
             if (commonlength !== 0) {
               if (previous_equality >= 0) {
@@ -555,17 +556,21 @@ function diff_cleanupMerge(diffs, fix_unicode) {
           }
           // Delete the offending records and add the merged ones.
           var n = count_insert + count_delete;
-          if (text_delete.length === 0) {
+          if (text_delete.length === 0 && text_insert.length === 0) {
+            diffs.splice(pointer - n, n);
+            pointer = pointer - n;
+          } else if (text_delete.length === 0) {
             diffs.splice(pointer - n, n, [DIFF_INSERT, text_insert]);
-            pointer = pointer - n + 2;
+            pointer = pointer - n + 1;
           } else if (text_insert.length === 0) {
             diffs.splice(pointer - n, n, [DIFF_DELETE, text_delete]);
-            pointer = pointer - n + 2;
+            pointer = pointer - n + 1;
           } else {
             diffs.splice(pointer - n, n, [DIFF_DELETE, text_delete], [DIFF_INSERT, text_insert]);
-            pointer = pointer - n + 3;
+            pointer = pointer - n + 2;
           }
-        } else if (pointer !== 0 && diffs[pointer - 1][0] == DIFF_EQUAL) {
+        }
+        if (pointer !== 0 && diffs[pointer - 1][0] == DIFF_EQUAL) {
           // Merge this equality with the previous one.
           diffs[pointer - 1][1] += diffs[pointer][1];
           diffs.splice(pointer, 1);
