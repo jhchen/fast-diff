@@ -1,11 +1,11 @@
 {
   "name": "fast-diff",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "description": "Fast Javascript text diff",
   "author": "Jason Chen <jhchen7@gmail.com>",
   "main": "diff.js",
+  "types": "diff.d.ts",
   "devDependencies": {
-    "googlediff": "~0.1.0",
     "lodash": "~3.9.3",
     "seedrandom": "~2.4.0"
   },
@@ -20,5 +20,7 @@
     "test": "node test.js"
   },
   "license": "Apache-2.0",
-  "keywords": ["diff"]
+  "keywords": [
+    "diff"
+  ]
 }
