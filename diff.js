@@ -108,7 +108,7 @@ function diff_compute_(text1, text2) {
   var longtext = text1.length > text2.length ? text1 : text2;
   var shorttext = text1.length > text2.length ? text2 : text1;
   var i = longtext.indexOf(shorttext);
-  if (i != -1) {
+  if (i !== -1) {
     // Shorter text is inside the longer text (speedup).
     diffs = [
       [DIFF_INSERT, longtext.substring(0, i)],
@@ -122,7 +122,7 @@ function diff_compute_(text1, text2) {
     return diffs;
   }
 
-  if (shorttext.length == 1) {
+  if (shorttext.length === 1) {
     // Single character string.
     // After the previous speedup, the character can't be an equality.
     return [[DIFF_DELETE, text1], [DIFF_INSERT, text2]];
@@ -177,7 +177,7 @@ function diff_bisect_(text1, text2) {
   var delta = text1_length - text2_length;
   // If the total number of characters is odd, then the front path will collide
   // with the reverse path.
-  var front = (delta % 2 != 0);
+  var front = (delta % 2 !== 0);
   // Offsets for start and end of k loop.
   // Prevents mapping of space beyond the grid.
   var k1start = 0;
@@ -189,7 +189,7 @@ function diff_bisect_(text1, text2) {
     for (var k1 = -d + k1start; k1 <= d - k1end; k1 += 2) {
       var k1_offset = v_offset + k1;
       var x1;
-      if (k1 == -d || (k1 != d && v1[k1_offset - 1] < v1[k1_offset + 1])) {
+      if (k1 === -d || (k1 !== d && v1[k1_offset - 1] < v1[k1_offset + 1])) {
         x1 = v1[k1_offset + 1];
       } else {
         x1 = v1[k1_offset - 1] + 1;
@@ -197,7 +197,7 @@ function diff_bisect_(text1, text2) {
       var y1 = x1 - k1;
       while (
         x1 < text1_length && y1 < text2_length &&
-        text1.charAt(x1) == text2.charAt(y1)
+        text1.charAt(x1) === text2.charAt(y1)
       ) {
         x1++;
         y1++;
@@ -211,7 +211,7 @@ function diff_bisect_(text1, text2) {
         k1start += 2;
       } else if (front) {
         var k2_offset = v_offset + delta - k1;
-        if (k2_offset >= 0 && k2_offset < v_length && v2[k2_offset] != -1) {
+        if (k2_offset >= 0 && k2_offset < v_length && v2[k2_offset] !== -1) {
           // Mirror x2 onto top-left coordinate system.
           var x2 = text1_length - v2[k2_offset];
           if (x1 >= x2) {
@@ -226,7 +226,7 @@ function diff_bisect_(text1, text2) {
     for (var k2 = -d + k2start; k2 <= d - k2end; k2 += 2) {
       var k2_offset = v_offset + k2;
       var x2;
-      if (k2 == -d || (k2 != d && v2[k2_offset - 1] < v2[k2_offset + 1])) {
+      if (k2 === -d || (k2 !== d && v2[k2_offset - 1] < v2[k2_offset + 1])) {
         x2 = v2[k2_offset + 1];
       } else {
         x2 = v2[k2_offset - 1] + 1;
@@ -234,7 +234,7 @@ function diff_bisect_(text1, text2) {
       var y2 = x2 - k2;
       while (
         x2 < text1_length && y2 < text2_length &&
-        text1.charAt(text1_length - x2 - 1) == text2.charAt(text2_length - y2 - 1)
+        text1.charAt(text1_length - x2 - 1) === text2.charAt(text2_length - y2 - 1)
       ) {
         x2++;
         y2++;
@@ -248,7 +248,7 @@ function diff_bisect_(text1, text2) {
         k2start += 2;
       } else if (!front) {
         var k1_offset = v_offset + delta - k2;
-        if (k1_offset >= 0 && k1_offset < v_length && v1[k1_offset] != -1) {
+        if (k1_offset >= 0 && k1_offset < v_length && v1[k1_offset] !== -1) {
           var x1 = v1[k1_offset];
           var y1 = v_offset + x1 - k1_offset;
           // Mirror x2 onto top-left coordinate system.
@@ -402,7 +402,7 @@ function diff_halfMatch_(text1, text2) {
     var j = -1;
     var best_common = '';
     var best_longtext_a, best_longtext_b, best_shorttext_a, best_shorttext_b;
-    while ((j = shorttext.indexOf(seed, j + 1)) != -1) {
+    while ((j = shorttext.indexOf(seed, j + 1)) !== -1) {
       var prefixLength = diff_commonPrefix(
         longtext.substring(i), shorttext.substring(j));
       var suffixLength = diff_commonSuffix(
@@ -464,6 +464,7 @@ function diff_halfMatch_(text1, text2) {
  * Reorder and merge like edit sections.  Merge equalities.
  * Any edit section can move as long as it doesn't cross an equality.
  * @param {Array} diffs Array of diff tuples.
+ * @param {boolean} fix_unicode Whether to normalize to a unicode-correct diff
  */
 function diff_cleanupMerge(diffs, fix_unicode) {
   diffs.push([DIFF_EQUAL, '']);  // Add a dummy entry at the end.
@@ -578,7 +579,7 @@ function diff_cleanupMerge(diffs, fix_unicode) {
             pointer = pointer - n + 2;
           }
         }
-        if (pointer !== 0 && diffs[pointer - 1][0] == DIFF_EQUAL) {
+        if (pointer !== 0 && diffs[pointer - 1][0] === DIFF_EQUAL) {
           // Merge this equality with the previous one.
           diffs[pointer - 1][1] += diffs[pointer][1];
           diffs.splice(pointer, 1);
@@ -603,11 +604,11 @@ function diff_cleanupMerge(diffs, fix_unicode) {
   pointer = 1;
   // Intentionally ignore the first and last element (don't need checking).
   while (pointer < diffs.length - 1) {
-    if (diffs[pointer - 1][0] == DIFF_EQUAL &&
-      diffs[pointer + 1][0] == DIFF_EQUAL) {
+    if (diffs[pointer - 1][0] === DIFF_EQUAL &&
+      diffs[pointer + 1][0] === DIFF_EQUAL) {
       // This is a single edit surrounded by equalities.
       if (diffs[pointer][1].substring(diffs[pointer][1].length -
-        diffs[pointer - 1][1].length) == diffs[pointer - 1][1]) {
+        diffs[pointer - 1][1].length) === diffs[pointer - 1][1]) {
         // Shift the edit over the previous equality.
         diffs[pointer][1] = diffs[pointer - 1][1] +
           diffs[pointer][1].substring(0, diffs[pointer][1].length -
@@ -674,22 +675,22 @@ function make_edit_splice(before, oldMiddle, newMiddle, after) {
 
 function find_cursor_edit_diff(oldText, newText, cursor_pos) {
   // note: this runs after equality check has ruled out exact equality
-  var oldSelection = typeof cursor_pos === 'number' ?
-    { index: cursor_pos, length: 0 } : cursor_pos.oldSelection;
-  var newSelection = typeof cursor_pos === 'number' ?
-    null : cursor_pos.newSelection;
+  var oldRange = typeof cursor_pos === 'number' ?
+    { index: cursor_pos, length: 0 } : cursor_pos.oldRange;
+  var newRange = typeof cursor_pos === 'number' ?
+    null : cursor_pos.newRange;
   // take into account the old and new selection to generate the best diff
   // possible for a text edit.  for example, a text change from "xxx" to "xx"
   // could be a delete or forwards-delete of any one of the x's, or the
   // result of selecting two of the x's and typing "x".
   var oldLength = oldText.length;
   var newLength = newText.length;
-  if (oldSelection.length === 0 && (newSelection === null || newSelection.length === 0)) {
+  if (oldRange.length === 0 && (newRange === null || newRange.length === 0)) {
     // see if we have an insert or delete before or after cursor
-    var oldCursor = oldSelection.index;
+    var oldCursor = oldRange.index;
     var oldBefore = oldText.slice(0, oldCursor);
     var oldAfter = oldText.slice(oldCursor);
-    var maybeNewCursor = newSelection ? newSelection.index : null;
+    var maybeNewCursor = newRange ? newRange.index : null;
     editBefore: {
       // is this an insert or delete right before oldCursor?
       var newCursor = oldCursor + newLength - oldLength;
@@ -736,11 +737,11 @@ function find_cursor_edit_diff(oldText, newText, cursor_pos) {
       return make_edit_splice(oldBefore, oldMiddle, newMiddle, oldSuffix);
     }
   }
-  if (oldSelection.length > 0 && newSelection && newSelection.length === 0) {
+  if (oldRange.length > 0 && newRange && newRange.length === 0) {
     replaceRange: {
       // see if diff could be a splice of the old selection range
-      var oldPrefix = oldText.slice(0, oldSelection.index);
-      var oldSuffix = oldText.slice(oldSelection.index + oldSelection.length);
+      var oldPrefix = oldText.slice(0, oldRange.index);
+      var oldSuffix = oldText.slice(oldRange.index + oldRange.length);
       var prefixLength = oldPrefix.length;
       var suffixLength = oldSuffix.length;
       if (newLength < prefixLength + suffixLength) {

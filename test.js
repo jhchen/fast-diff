@@ -151,23 +151,23 @@ console.log('Running cursor tests');
 ].forEach(function (data) {
   var oldText = data[0];
   var newText = data[2];
-  var oldSelection = typeof data[1] === 'number' ?
+  var oldRange = typeof data[1] === 'number' ?
     { index: data[1], length: 0 } :
     { index: data[1][0], length: data[1][1] - data[1][0] };
-  var newSelection = typeof data[3] === 'number' ?
+  var newRange = typeof data[3] === 'number' ?
     { index: data[3], length: 0 } :
     data[3] === null ? null : { index: data[3][0], length: data[3][1] - data[3][0] };
   var expected = parseDiff(data[4]);
-  if (newSelection === null && typeof data[1] !== 'number') {
+  if (newRange === null && typeof data[1] !== 'number') {
     throw new Error('invalid test case');
   }
-  var selectionInfo = newSelection === null ? data[1] : {
-    oldSelection: oldSelection,
-    newSelection: newSelection,
+  var cursorInfo = newRange === null ? data[1] : {
+    oldRange: oldRange,
+    newRange: newRange,
   };
-  doCursorTest(oldText, newText, selectionInfo, expected);
-  doCursorTest('x' + oldText, 'x' + newText, shiftSelectionInfo(selectionInfo, 1), diffPrepend(expected, 'x'));
-  doCursorTest(oldText + 'x', newText + 'x', selectionInfo, diffAppend(expected, 'x'));
+  doCursorTest(oldText, newText, cursorInfo, expected);
+  doCursorTest('x' + oldText, 'x' + newText, shiftCursorInfo(cursorInfo, 1), diffPrepend(expected, 'x'));
+  doCursorTest(oldText + 'x', newText + 'x', cursorInfo, diffAppend(expected, 'x'));
 });
 
 function diffPrepend(tuples, text) {
@@ -187,27 +187,27 @@ function diffAppend(tuples, text) {
   }
 }
 
-function shiftSelectionInfo(selectionInfo, amount) {
-  if (typeof selectionInfo === 'number') {
-    return selectionInfo + amount;
+function shiftCursorInfo(cursorInfo, amount) {
+  if (typeof cursorInfo === 'number') {
+    return cursorInfo + amount;
   } else {
     return {
-      oldSelection: {
-        index: selectionInfo.oldSelection.index + amount,
-        length: selectionInfo.oldSelection.length,
+      oldRange: {
+        index: cursorInfo.oldRange.index + amount,
+        length: cursorInfo.oldRange.length,
       },
-      newSelection: {
-        index: selectionInfo.newSelection.index + amount,
-        length: selectionInfo.newSelection.length,
+      newRange: {
+        index: cursorInfo.newRange.index + amount,
+        length: cursorInfo.newRange.length,
       },
     }
   }
 }
 
-function doCursorTest(oldText, newText, selectionInfo, expected) {
-  var result = diff(oldText, newText, selectionInfo);
+function doCursorTest(oldText, newText, cursorInfo, expected) {
+  var result = diff(oldText, newText, cursorInfo);
   if (!_.isEqual(result, expected)) {
-    console.log([oldText, newText, selectionInfo]);
+    console.log([oldText, newText, cursorInfo]);
     console.log(result, '!==', expected);
     throw new Error('cursor test failed');
   }
