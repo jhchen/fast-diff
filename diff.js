@@ -60,15 +60,21 @@ function diff_main(text1, text2, cursor_pos, _fix_unicode) {
 
   // Trim off common prefix (speedup).
   var commonlength = diff_commonPrefix(text1, text2);
-  var commonprefix = text1.substring(0, commonlength);
-  text1 = text1.substring(commonlength);
-  text2 = text2.substring(commonlength);
+  var commonprefix = ''
+  if(commonlength > 0) {
+    commonprefix = text1.substring(0, commonlength);
+    text1 = text1.substring(commonlength);
+    text2 = text2.substring(commonlength);
+  }
 
   // Trim off common suffix (speedup).
   commonlength = diff_commonSuffix(text1, text2);
-  var commonsuffix = text1.substring(text1.length - commonlength);
-  text1 = text1.substring(0, text1.length - commonlength);
-  text2 = text2.substring(0, text2.length - commonlength);
+  var commonsuffix = ''
+  if(commonlength > 0) {
+    var commonsuffix = text1.substring(text1.length - commonlength);
+    text1 = text1.substring(0, text1.length - commonlength);
+    text2 = text2.substring(0, text2.length - commonlength);
+  }
 
   // Compute the diff on the middle block.
   var diffs = diff_compute_(text1, text2);
