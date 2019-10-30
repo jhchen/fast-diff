@@ -6,7 +6,7 @@
   "main": "diff.js",
   "types": "diff.d.ts",
   "devDependencies": {
-    "lodash": "~3.9.3",
+    "lodash": "~4.17.13",
     "seedrandom": "~2.4.0"
   },
   "repository": {
