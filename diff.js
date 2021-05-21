@@ -60,15 +60,15 @@ function diff_main(text1, text2, cursor_pos, _fix_unicode) {
 
   // Trim off common prefix (speedup).
   var commonlength = diff_commonPrefix(text1, text2);
-  var commonprefix = text1.substring(0, commonlength);
-  text1 = text1.substring(commonlength);
-  text2 = text2.substring(commonlength);
+  var commonprefix = text1.slice(0, commonlength);
+  text1 = text1.slice(commonlength);
+  text2 = text2.slice(commonlength);
 
   // Trim off common suffix (speedup).
   commonlength = diff_commonSuffix(text1, text2);
-  var commonsuffix = text1.substring(text1.length - commonlength);
-  text1 = text1.substring(0, text1.length - commonlength);
-  text2 = text2.substring(0, text2.length - commonlength);
+  var commonsuffix = text1.slice(text1.length - commonlength);
+  text1 = text1.slice(0, text1.length - commonlength);
+  text2 = text2.slice(0, text2.length - commonlength);
 
   // Compute the diff on the middle block.
   var diffs = diff_compute_(text1, text2);
@@ -111,9 +111,9 @@ function diff_compute_(text1, text2) {
   if (i !== -1) {
     // Shorter text is inside the longer text (speedup).
     diffs = [
-      [DIFF_INSERT, longtext.substring(0, i)],
+      [DIFF_INSERT, longtext.slice(0, i)],
       [DIFF_EQUAL, shorttext],
-      [DIFF_INSERT, longtext.substring(i + shorttext.length)]
+      [DIFF_INSERT, longtext.slice(i + shorttext.length)]
     ];
     // Swap insertions for deletions if diff is reversed.
     if (text1.length > text2.length) {
@@ -197,7 +197,7 @@ function diff_bisect_(text1, text2) {
       var y1 = x1 - k1;
       while (
         x1 < text1_length && y1 < text2_length &&
-        text1.charAt(x1) === text2.charAt(y1)
+        text1[x1] === text2[y1]
       ) {
         x1++;
         y1++;
@@ -234,7 +234,7 @@ function diff_bisect_(text1, text2) {
       var y2 = x2 - k2;
       while (
         x2 < text1_length && y2 < text2_length &&
-        text1.charAt(text1_length - x2 - 1) === text2.charAt(text2_length - y2 - 1)
+        text1[text1_length - x2 - 1] === text2[text2_length - y2 - 1]
       ) {
         x2++;
         y2++;
@@ -277,10 +277,10 @@ function diff_bisect_(text1, text2) {
  * @return {Array} Array of diff tuples.
  */
 function diff_bisectSplit_(text1, text2, x, y) {
-  var text1a = text1.substring(0, x);
-  var text2a = text2.substring(0, y);
-  var text1b = text1.substring(x);
-  var text2b = text2.substring(y);
+  var text1a = text1.slice(0, x);
+  var text2a = text2.slice(0, y);
+  var text1b = text1.slice(x);
+  var text2b = text2.slice(y);
 
   // Compute both diffs serially.
   var diffs = diff_main(text1a, text2a);
@@ -299,7 +299,7 @@ function diff_bisectSplit_(text1, text2, x, y) {
  */
 function diff_commonPrefix(text1, text2) {
   // Quick check for common null cases.
-  if (!text1 || !text2 || text1.charAt(0) !== text2.charAt(0)) {
+  if (!text1 || !text2 || text1[0] !== text2[0]) {
     return 0;
   }
   // Binary search.
@@ -310,8 +310,8 @@ function diff_commonPrefix(text1, text2) {
   var pointerstart = 0;
   while (pointermin < pointermid) {
     if (
-      text1.substring(pointerstart, pointermid) ==
-      text2.substring(pointerstart, pointermid)
+      text1.slice(pointerstart, pointermid) ==
+      text2.slice(pointerstart, pointermid)
     ) {
       pointermin = pointermid;
       pointerstart = pointermin;
@@ -321,7 +321,7 @@ function diff_commonPrefix(text1, text2) {
     pointermid = Math.floor((pointermax - pointermin) / 2 + pointermin);
   }
 
-  if (is_surrogate_pair_start(text1.charCodeAt(pointermid - 1))) {
+  if (is_surrogate_pair_start(text1.charCodeAt && text1.charCodeAt(pointermid - 1))) {
     pointermid--;
   }
 
@@ -348,8 +348,8 @@ function diff_commonSuffix(text1, text2) {
   var pointerend = 0;
   while (pointermin < pointermid) {
     if (
-      text1.substring(text1.length - pointermid, text1.length - pointerend) ==
-      text2.substring(text2.length - pointermid, text2.length - pointerend)
+      text1.slice(text1.length - pointermid, text1.length - pointerend) ==
+      text2.slice(text2.length - pointermid, text2.length - pointerend)
     ) {
       pointermin = pointermid;
       pointerend = pointermin;
@@ -359,7 +359,7 @@ function diff_commonSuffix(text1, text2) {
     pointermid = Math.floor((pointermax - pointermin) / 2 + pointermin);
   }
 
-  if (is_surrogate_pair_end(text1.charCodeAt(text1.length - pointermid))) {
+  if (is_surrogate_pair_end(text1.charCodeAt && text1.charCodeAt(text1.length - pointermid))) {
     pointermid--;
   }
 
@@ -398,22 +398,22 @@ function diff_halfMatch_(text1, text2) {
    */
   function diff_halfMatchI_(longtext, shorttext, i) {
     // Start with a 1/4 length substring at position i as a seed.
-    var seed = longtext.substring(i, i + Math.floor(longtext.length / 4));
+    var seed = longtext.slice(i, i + Math.floor(longtext.length / 4));
     var j = -1;
     var best_common = '';
     var best_longtext_a, best_longtext_b, best_shorttext_a, best_shorttext_b;
     while ((j = shorttext.indexOf(seed, j + 1)) !== -1) {
       var prefixLength = diff_commonPrefix(
-        longtext.substring(i), shorttext.substring(j));
+        longtext.slice(i), shorttext.slice(j));
       var suffixLength = diff_commonSuffix(
-        longtext.substring(0, i), shorttext.substring(0, j));
+        longtext.slice(0, i), shorttext.slice(0, j));
       if (best_common.length < suffixLength + prefixLength) {
-        best_common = shorttext.substring(
-          j - suffixLength, j) + shorttext.substring(j, j + prefixLength);
-        best_longtext_a = longtext.substring(0, i - suffixLength);
-        best_longtext_b = longtext.substring(i + prefixLength);
-        best_shorttext_a = shorttext.substring(0, j - suffixLength);
-        best_shorttext_b = shorttext.substring(j + prefixLength);
+        best_common = shorttext.slice(
+          j - suffixLength, j) + shorttext.slice(j, j + prefixLength);
+        best_longtext_a = longtext.slice(0, i - suffixLength);
+        best_longtext_b = longtext.slice(i + prefixLength);
+        best_shorttext_a = shorttext.slice(0, j - suffixLength);
+        best_shorttext_b = shorttext.slice(j + prefixLength);
       }
     }
     if (best_common.length * 2 >= longtext.length) {
@@ -528,7 +528,7 @@ function diff_cleanupMerge(diffs, fix_unicode) {
             }
           }
           if (starts_with_pair_end(diffs[pointer][1])) {
-            var stray = diffs[pointer][1].charAt(0);
+            var stray = diffs[pointer][1][0];
             diffs[pointer][1] = diffs[pointer][1].slice(1);
             text_delete += stray;
             text_insert += stray;
@@ -546,21 +546,21 @@ function diff_cleanupMerge(diffs, fix_unicode) {
             commonlength = diff_commonPrefix(text_insert, text_delete);
             if (commonlength !== 0) {
               if (previous_equality >= 0) {
-                diffs[previous_equality][1] += text_insert.substring(0, commonlength);
+                diffs[previous_equality][1] += text_insert.slice(0, commonlength);
               } else {
-                diffs.splice(0, 0, [DIFF_EQUAL, text_insert.substring(0, commonlength)]);
+                diffs.splice(0, 0, [DIFF_EQUAL, text_insert.slice(0, commonlength)]);
                 pointer++;
               }
-              text_insert = text_insert.substring(commonlength);
-              text_delete = text_delete.substring(commonlength);
+              text_insert = text_insert.slice(commonlength);
+              text_delete = text_delete.slice(commonlength);
             }
             // Factor out any common suffixes.
             commonlength = diff_commonSuffix(text_insert, text_delete);
             if (commonlength !== 0) {
               diffs[pointer][1] =
-                text_insert.substring(text_insert.length - commonlength) + diffs[pointer][1];
-              text_insert = text_insert.substring(0, text_insert.length - commonlength);
-              text_delete = text_delete.substring(0, text_delete.length - commonlength);
+                text_insert.slice(text_insert.length - commonlength) + diffs[pointer][1];
+              text_insert = text_insert.slice(0, text_insert.length - commonlength);
+              text_delete = text_delete.slice(0, text_delete.length - commonlength);
             }
           }
           // Delete the offending records and add the merged ones.
@@ -607,21 +607,21 @@ function diff_cleanupMerge(diffs, fix_unicode) {
     if (diffs[pointer - 1][0] === DIFF_EQUAL &&
       diffs[pointer + 1][0] === DIFF_EQUAL) {
       // This is a single edit surrounded by equalities.
-      if (diffs[pointer][1].substring(diffs[pointer][1].length -
+      if (diffs[pointer][1].slice(diffs[pointer][1].length -
         diffs[pointer - 1][1].length) === diffs[pointer - 1][1]) {
         // Shift the edit over the previous equality.
         diffs[pointer][1] = diffs[pointer - 1][1] +
-          diffs[pointer][1].substring(0, diffs[pointer][1].length -
+          diffs[pointer][1].slice(0, diffs[pointer][1].length -
             diffs[pointer - 1][1].length);
         diffs[pointer + 1][1] = diffs[pointer - 1][1] + diffs[pointer + 1][1];
         diffs.splice(pointer - 1, 1);
         changes = true;
-      } else if (diffs[pointer][1].substring(0, diffs[pointer + 1][1].length) ==
+      } else if (diffs[pointer][1].slice(0, diffs[pointer + 1][1].length) ==
         diffs[pointer + 1][1]) {
         // Shift the edit over the next equality.
         diffs[pointer - 1][1] += diffs[pointer + 1][1];
         diffs[pointer][1] =
-          diffs[pointer][1].substring(diffs[pointer + 1][1].length) +
+          diffs[pointer][1].slice(diffs[pointer + 1][1].length) +
           diffs[pointer + 1][1];
         diffs.splice(pointer + 1, 1);
         changes = true;
@@ -644,11 +644,11 @@ function is_surrogate_pair_end(charCode) {
 }
 
 function starts_with_pair_end(str) {
-  return is_surrogate_pair_end(str.charCodeAt(0));
+  return is_surrogate_pair_end(str.charCodeAt && str.charCodeAt(0));
 }
 
 function ends_with_pair_start(str) {
-  return is_surrogate_pair_start(str.charCodeAt(str.length - 1));
+  return is_surrogate_pair_start(str.charCodeAt && str.charCodeAt(str.length - 1));
 }
 
 function remove_empty_tuples(tuples) {
