@@ -175,17 +175,35 @@ console.log("Running cursor tests");
           oldRange: oldRange,
           newRange: newRange,
         };
-  doCursorTest(oldText, newText, cursorInfo, expected);
+  doCursorTest(oldText, newText, cursorInfo, false, expected);
   doCursorTest(
     "x" + oldText,
     "x" + newText,
     shiftCursorInfo(cursorInfo, 1),
+    false,
     diffPrepend(expected, "x")
   );
   doCursorTest(
     oldText + "x",
     newText + "x",
     cursorInfo,
+    false,
+    diffAppend(expected, "x")
+  );
+
+  doCursorTest(oldText, newText, cursorInfo, true, expected);
+  doCursorTest(
+    "x" + oldText,
+    "x" + newText,
+    shiftCursorInfo(cursorInfo, 1),
+    true,
+    diffPrepend(expected, "x")
+  );
+  doCursorTest(
+    oldText + "x",
+    newText + "x",
+    cursorInfo,
+    true,
     diffAppend(expected, "x")
   );
 });
@@ -224,8 +242,8 @@ function shiftCursorInfo(cursorInfo, amount) {
   }
 }
 
-function doCursorTest(oldText, newText, cursorInfo, expected) {
-  var result = diff(oldText, newText, cursorInfo);
+function doCursorTest(oldText, newText, cursorInfo, cleanup, expected) {
+  var result = diff(oldText, newText, cursorInfo, cleanup);
   if (!_.isEqual(result, expected)) {
     console.log([oldText, newText, cursorInfo]);
     console.log(result, "!==", expected);
