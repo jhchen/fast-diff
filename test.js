@@ -121,6 +121,13 @@ console.log("Running cursor tests");
   ["aaa", 2, "aa", 1, "=a-a=a"],
   ["aaa", 3, "aa", 2, "=aa-a"],
 
+  // neither edit before nor edit after
+  ["aaa", 3, "aa", 0, "=aa-a"],
+
+  // unmatched replace operations
+  ["12345", [1, 2], "15", 1, "=1-234=5"], // unmatched length
+  ["12345", [1, 2], "a545", 1, "-123+a5=45"], // unmatched prefix
+
   // forward-delete
   ["a", 0, "", 0, "-a"],
   ["aa", 0, "a", 0, "-a=a"],
@@ -299,6 +306,20 @@ for (var i = 0; i < ITERATIONS; ++i) {
   var result = diff(oldText, newText);
   applyDiff(result, oldText, newText);
 }
+
+console.log("Running semantic cleanup tests...");
+const semanticCleanupTestCases = [
+  // lossless shifting
+  ["The came", "The cat came"],
+  ["The cat came", "The came"],
+  // common overlap
+  ["111xxxabc", "111defxxx"],
+  ["111xxxabcd", "111defxxx"],
+];
+semanticCleanupTestCases.forEach(([oldText, newText]) => {
+  const result = diff(oldText, newText, null, true);
+  applyDiff(result, oldText, newText);
+});
 
 // Applies a diff to text, throwing an error if diff is invalid or incorrect
 function applyDiff(diffs, text, expectedResult) {

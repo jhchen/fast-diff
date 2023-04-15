@@ -661,6 +661,12 @@ function diff_cleanupSemantic(diffs) {
   }
 }
 
+var nonAlphaNumericRegex_ = /[^a-zA-Z0-9]/;
+var whitespaceRegex_ = /\s/;
+var linebreakRegex_ = /[\r\n]/;
+var blanklineEndRegex_ = /\n\r?\n$/;
+var blanklineStartRegex_ = /^\r?\n\r?\n/;
+
 /**
  * Look for single edits surrounded on both sides by equalities
  * which can be shifted sideways to align the edit to a word boundary.
@@ -691,20 +697,14 @@ function diff_cleanupSemanticLossless(diffs) {
     // rather than force total conformity.
     var char1 = one.charAt(one.length - 1);
     var char2 = two.charAt(0);
-    var nonAlphaNumeric1 = char1.match(diff_match_patch.nonAlphaNumericRegex_);
-    var nonAlphaNumeric2 = char2.match(diff_match_patch.nonAlphaNumericRegex_);
-    var whitespace1 =
-      nonAlphaNumeric1 && char1.match(diff_match_patch.whitespaceRegex_);
-    var whitespace2 =
-      nonAlphaNumeric2 && char2.match(diff_match_patch.whitespaceRegex_);
-    var lineBreak1 =
-      whitespace1 && char1.match(diff_match_patch.linebreakRegex_);
-    var lineBreak2 =
-      whitespace2 && char2.match(diff_match_patch.linebreakRegex_);
-    var blankLine1 =
-      lineBreak1 && one.match(diff_match_patch.blanklineEndRegex_);
-    var blankLine2 =
-      lineBreak2 && two.match(diff_match_patch.blanklineStartRegex_);
+    var nonAlphaNumeric1 = char1.match(nonAlphaNumericRegex_);
+    var nonAlphaNumeric2 = char2.match(nonAlphaNumericRegex_);
+    var whitespace1 = nonAlphaNumeric1 && char1.match(whitespaceRegex_);
+    var whitespace2 = nonAlphaNumeric2 && char2.match(whitespaceRegex_);
+    var lineBreak1 = whitespace1 && char1.match(linebreakRegex_);
+    var lineBreak2 = whitespace2 && char2.match(linebreakRegex_);
+    var blankLine1 = lineBreak1 && one.match(blanklineEndRegex_);
+    var blankLine2 = lineBreak2 && two.match(blanklineStartRegex_);
 
     if (blankLine1 || blankLine2) {
       // Five points for blank lines.
@@ -738,7 +738,7 @@ function diff_cleanupSemanticLossless(diffs) {
       var equality2 = diffs[pointer + 1][1];
 
       // First, shift the edit as far left as possible.
-      var commonOffset = this.diff_commonSuffix(equality1, edit);
+      var commonOffset = diff_commonSuffix(equality1, edit);
       if (commonOffset) {
         var commonString = edit.substring(edit.length - commonOffset);
         equality1 = equality1.substring(0, equality1.length - commonOffset);

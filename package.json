@@ -7,6 +7,7 @@
   "types": "diff.d.ts",
   "devDependencies": {
     "lodash": "~3.9.3",
+    "nyc": "^15.1.0",
     "seedrandom": "~2.4.0"
   },
   "repository": {
@@ -17,7 +18,7 @@
     "url": "https://github.com/jhchen/fast-diff/issues"
   },
   "scripts": {
-    "test": "node test.js"
+    "test": "nyc node test.js"
   },
   "license": "Apache-2.0",
   "keywords": [
