@@ -5,6 +5,9 @@
   "author": "Jason Chen <jhchen7@gmail.com>",
   "main": "diff.js",
   "types": "diff.d.ts",
+  "files": [
+    "diff.d.ts"
+  ],
   "devDependencies": {
     "lodash": "~4.17.21",
     "nyc": "~15.1.0",
